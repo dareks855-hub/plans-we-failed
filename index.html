@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="Трагикомическое напоминание о планах, которые всё ещё не выполнены.">
+  <title>Планы, которые мы проебали</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23080808'/%3E%3Cpath d='M18 17h28v31H18z' fill='none' stroke='%23b04eb7' stroke-width='4'/%3E%3Cpath d='M24 27l6 6 11-12M24 42h17' fill='none' stroke='%23f0e9dd' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f1ede5;
+      --muted: #97908b;
+      --void: #080808;
+      --bruise: #8d3f92;
+      --blood: #a63232;
+      --acid: #d7e45f;
+      --line: rgba(241, 237, 229, .16);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--void); }
+    body {
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+    }
+    button { font: inherit; }
+
+    .site {
+      min-height: 100svh;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 75% 16%, rgba(141,63,146,.16), transparent 27rem),
+        radial-gradient(circle at 10% 90%, rgba(166,50,50,.12), transparent 30rem),
+        linear-gradient(#0c0c0c, #050505);
+    }
+
+    .grain, .vignette, .rain { position: fixed; inset: 0; pointer-events: none; }
+    .grain {
+      z-index: 20;
+      opacity: .12;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+    .vignette { z-index: 18; box-shadow: inset 0 0 11rem 2rem #000; }
+    .rain {
+      z-index: 2;
+      opacity: .2;
+      background: repeating-linear-gradient(103deg, transparent 0 16px, rgba(255,255,255,.12) 17px, transparent 18px 32px);
+      background-size: 220% 220%;
+      animation: rain 9s linear infinite;
+      transform: skewX(-11deg) scale(1.2);
+    }
+
+    header {
+      position: relative;
+      z-index: 10;
+      min-height: 32svh;
+      padding: clamp(1.25rem, 4vw, 4rem);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 2rem;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      color: var(--muted);
+      font-size: .8rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 2.4rem; border-top: 1px solid var(--blood); }
+    h1 {
+      max-width: 14ch;
+      margin: .65rem 0 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(3rem, 8vw, 8.7rem);
+      font-weight: 400;
+      line-height: .84;
+      letter-spacing: -.065em;
+    }
+    h1 em { color: var(--bruise); font-weight: 400; }
+
+    .counter {
+      min-width: 16rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .counter small { color: var(--muted); font-size: .76rem; letter-spacing: .1em; text-transform: uppercase; }
+    .counter strong { display: block; margin-top: .45rem; font: 400 clamp(2rem, 4vw, 4rem)/1 Georgia, serif; }
+    .counter span { color: var(--acid); }
+
+    .stage {
+      position: relative;
+      z-index: 5;
+      height: 48svh;
+      min-height: 22rem;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+    }
+    .stage::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 9%;
+      border-top: 1px solid rgba(241,237,229,.09);
+      box-shadow: 0 18px 45px rgba(0,0,0,.8);
+    }
+    .act-label {
+      position: absolute;
+      inset: 1.2rem auto auto clamp(1.25rem, 4vw, 4rem);
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .message-shell {
+      --duration: 12s;
+      position: absolute;
+      z-index: 4;
+      width: min(64rem, 74vw);
+      left: 0;
+      bottom: 14%;
+      transform-origin: 50% 100%;
+      filter: drop-shadow(0 2rem 2rem rgba(0,0,0,.8));
+      will-change: transform, left, opacity;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .message-shell img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+    .message-shell::after {
+      content: "";
+      position: absolute;
+      inset: auto 7% -1.4rem;
+      height: 1.4rem;
+      border-radius: 50%;
+      background: rgba(0,0,0,.7);
+      filter: blur(10px);
+      animation: shadowPulse .7s ease-in-out infinite alternate;
+    }
+    .mode-march { animation: doomedMarch var(--duration) linear infinite; }
+    .mode-stumble { animation: stumble 7.2s cubic-bezier(.4,0,.2,1) infinite; }
+    .mode-pendulum { left: 14%; bottom: 21%; transform-origin: 50% -150%; animation: pendulum 5s ease-in-out infinite; }
+    .mode-panic { left: 14%; animation: panic 2.1s steps(2,end) infinite; }
+    .mode-fade { left: 16%; animation: fadeAway 8s ease-in-out infinite; }
+
+    .stage-note {
+      position: absolute;
+      right: clamp(1.25rem, 4vw, 4rem);
+      bottom: 1.25rem;
+      color: #655f5b;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: clamp(.9rem, 1.5vw, 1.15rem);
+    }
+
+    .controls {
+      position: relative;
+      z-index: 25;
+      padding: 1rem clamp(1.25rem, 4vw, 4rem) 2rem;
+      display: flex;
+      gap: .7rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .control, .sound {
+      min-height: 2.75rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .65rem 1rem;
+      background: rgba(255,255,255,.025);
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .2s, border-color .2s, background .2s, transform .2s;
+    }
+    .control:hover, .control:focus-visible, .sound:hover, .sound:focus-visible { color: var(--ink); border-color: rgba(241,237,229,.5); outline: none; }
+    .control:active, .sound:active { transform: translateY(2px); }
+    .control[aria-pressed="true"] { color: var(--void); background: var(--acid); border-color: var(--acid); }
+    .sound { margin-left: auto; color: var(--ink); border-color: rgba(176,78,183,.6); }
+    .sound[data-playing="true"]::before { content: "◼  "; }
+    .sound[data-playing="false"]::before { content: "▶  "; }
+
+    .curtain {
+      position: fixed;
+      z-index: 100;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      background: rgba(4,4,4,.96);
+      transition: opacity .8s ease, visibility .8s;
+    }
+    .curtain.is-open { opacity: 0; visibility: hidden; }
+    .curtain-inner { text-align: center; max-width: 42rem; }
+    .curtain-kicker { color: var(--bruise); letter-spacing: .2em; text-transform: uppercase; font-size: .78rem; }
+    .curtain h2 { margin: .8rem 0 1rem; font: 400 clamp(2.6rem, 7vw, 6.7rem)/.92 Georgia, serif; letter-spacing: -.045em; }
+    .curtain p { max-width: 38rem; margin: 0 auto 2rem; color: var(--muted); font-size: 1rem; line-height: 1.6; }
+    .enter {
+      min-height: 3.4rem;
+      padding: .85rem 1.35rem;
+      border: 0;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--void);
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 0 0 rgba(176,78,183,.5);
+      animation: invite 2.2s ease infinite;
+    }
+    .music-credit { margin-top: 1.2rem; color: #68625f; font-size: .78rem; }
+
+    .epitaph {
+      position: fixed;
+      z-index: 90;
+      left: 50%; bottom: 2rem;
+      width: min(90vw, 32rem);
+      padding: 1rem 1.2rem;
+      border: 1px solid rgba(166,50,50,.5);
+      background: rgba(8,8,8,.92);
+      color: var(--ink);
+      text-align: center;
+      transform: translate(-50%, 140%);
+      transition: transform .35s cubic-bezier(.2,.8,.2,1);
+      pointer-events: none;
+    }
+    .epitaph.show { transform: translate(-50%, 0); }
+    #music-frame { position: fixed; width: 1px; height: 1px; left: -10px; bottom: -10px; opacity: .01; pointer-events: none; }
+
+    @keyframes rain { to { background-position: -45vw 100vh; } }
+    @keyframes doomedMarch {
+      0% { transform: translateX(-80vw) translateY(0) rotate(-1deg); }
+      8% { transform: translateX(-55vw) translateY(-9px) rotate(1deg); }
+      16% { transform: translateX(-30vw) translateY(0) rotate(-1deg); }
+      50% { transform: translateX(35vw) translateY(-7px) rotate(.5deg); }
+      82% { transform: translateX(88vw) translateY(0) rotate(-1deg); }
+      100% { transform: translateX(118vw) translateY(-5px) rotate(1deg); }
+    }
+    @keyframes stumble {
+      0% { left: -72%; transform: translateY(0) rotate(0); }
+      48% { left: 22%; transform: translateY(-3px) rotate(0); }
+      54% { left: 27%; transform: translateY(3px) rotate(3deg); }
+      65%, 88% { left: 29%; transform: translateY(25%) rotate(14deg); }
+      100% { left: 110%; transform: translateY(10%) rotate(8deg); }
+    }
+    @keyframes pendulum {
+      0%, 100% { transform: rotate(-9deg) translateY(0); }
+      50% { transform: rotate(9deg) translateY(8px); }
+    }
+    @keyframes panic {
+      0% { transform: translate(0,0) rotate(0); }
+      20% { transform: translate(-9px,4px) rotate(-.7deg); }
+      40% { transform: translate(8px,-3px) rotate(.6deg); }
+      60% { transform: translate(-5px,-1px) rotate(.2deg); }
+      80% { transform: translate(7px,4px) rotate(-.5deg); }
+      100% { transform: translate(0,0) rotate(0); }
+    }
+    @keyframes fadeAway {
+      0%, 14% { opacity: 0; transform: scale(.86) translateY(40px); filter: blur(9px); }
+      34%, 66% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0) drop-shadow(0 2rem 2rem rgba(0,0,0,.8)); }
+      86%, 100% { opacity: 0; transform: scale(1.08) translateY(-28px); filter: blur(7px); }
+    }
+    @keyframes shadowPulse { to { transform: scaleX(.94); opacity: .45; } }
+    @keyframes invite { 50% { box-shadow: 0 0 0 8px rgba(176,78,183,0); } }
+
+    @media (max-width: 720px) {
+      header { min-height: 34svh; grid-template-columns: 1fr; gap: 1.25rem; }
+      h1 { font-size: clamp(3.4rem, 16vw, 6rem); }
+      .counter { min-width: 0; width: 100%; padding: .7rem 0; }
+      .counter strong { font-size: 2rem; }
+      .stage { height: 44svh; min-height: 20rem; }
+      .message-shell { width: 93vw; bottom: 20%; }
+      .mode-pendulum, .mode-panic, .mode-fade { left: 3.5%; }
+      .controls { padding-bottom: 1.25rem; }
+      .sound { margin-left: 0; }
+      .vignette { box-shadow: inset 0 0 6rem 1rem #000; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rain, .message-shell, .message-shell::after, .enter { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+      .message-shell { left: 5%; transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="site">
+    <div class="rain" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <header>
+      <div>
+        <div class="eyebrow">Ежедневный отчёт о надежде</div>
+        <h1>Планы, которые мы <em>проебали</em></h1>
+      </div>
+      <div class="counter" aria-label="Прогресс исполнения плана">
+        <small>Выполнено сегодня</small>
+        <strong><span>0</span> из 800 млн</strong>
+      </div>
+    </header>
+
+    <section class="stage" aria-label="Сцена трагедии">
+      <div class="act-label" aria-live="polite">Акт I · Обречённое шествие</div>
+      <div class="message-shell mode-march" role="button" tabindex="0" aria-label="Нажать, чтобы выразить беспомощность">
+        <img src="plan-message.png" alt="Сообщение о невыполненном плане на 800 миллионов">
+      </div>
+      <div class="stage-note">обещания были велики. факт оказался компактнее.</div>
+    </section>
+
+    <nav class="controls" aria-label="Режимы трагедии">
+      <button class="control" data-mode="march" aria-pressed="true">шествие</button>
+      <button class="control" data-mode="stumble" aria-pressed="false">падение</button>
+      <button class="control" data-mode="pendulum" aria-pressed="false">раскачка</button>
+      <button class="control" data-mode="panic" aria-pressed="false">паника</button>
+      <button class="control" data-mode="fade" aria-pressed="false">исчезновение</button>
+      <button class="sound" data-playing="false" aria-label="Включить или выключить музыку">вернуть музыку</button>
+    </nav>
+
+    <div class="curtain">
+      <div class="curtain-inner">
+        <div class="curtain-kicker">Трагедия в пяти действиях</div>
+        <h2>План был.<br>Плана нет.</h2>
+        <p>День почти кончился, 800 миллионов всё ещё не материализовались. Приготовьтесь наблюдать, как факт медленно ходит по кругу.</p>
+        <button class="enter">принять трагедию со звуком</button>
+        <div class="music-credit">Suzume · Sati Akura — начнётся после нажатия</div>
+      </div>
+    </div>
+
+    <div class="epitaph" role="status" aria-live="polite"></div>
+    <div id="music-host" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const modes = [
+      { id: 'march', label: 'Акт I · Обречённое шествие' },
+      { id: 'stumble', label: 'Акт II · Попытка встать и пойти дальше' },
+      { id: 'pendulum', label: 'Акт III · Стратегическое раскачивание' },
+      { id: 'panic', label: 'Акт IV · Контролируемая паника' },
+      { id: 'fade', label: 'Акт V · Растворение ответственности' }
+    ];
+    const epitaphs = [
+      'Нажатие зарегистрировано. Выручка — нет.',
+      'Это действие не приблизило нас к 800 млн.',
+      'Ответственный найден. Он тоже в шоке.',
+      'План обновлён: теперь он ещё вчерашнее.',
+      'Оптимизм временно недоступен.'
+    ];
+    const shell = document.querySelector('.message-shell');
+    const label = document.querySelector('.act-label');
+    const controls = [...document.querySelectorAll('.control')];
+    const sound = document.querySelector('.sound');
+    const curtain = document.querySelector('.curtain');
+    const enter = document.querySelector('.enter');
+    const epitaph = document.querySelector('.epitaph');
+    let current = 0;
+    let cycle;
+    let toastTimer;
+
+    function setMode(index, restart = true) {
+      current = (index + modes.length) % modes.length;
+      shell.className = `message-shell mode-${modes[current].id}`;
+      label.textContent = modes[current].label;
+      controls.forEach((button) => button.setAttribute('aria-pressed', button.dataset.mode === modes[current].id ? 'true' : 'false'));
+      if (restart) startCycle();
+    }
+
+    function startCycle() {
+      clearInterval(cycle);
+      cycle = setInterval(() => setMode(current + 1, false), 9000);
+    }
+
+    function startMusic() {
+      const host = document.querySelector('#music-host');
+      host.innerHTML = '<iframe id="music-frame" title="Suzume — Sati Akura" src="https://www.youtube.com/embed/mrTUAxhQ_Uo?autoplay=1&loop=1&playlist=mrTUAxhQ_Uo&controls=0" allow="autoplay; encrypted-media"></iframe>';
+      sound.dataset.playing = 'true';
+      sound.textContent = 'музыка играет';
+      sound.setAttribute('aria-label', 'Выключить музыку');
+    }
+
+    function stopMusic() {
+      document.querySelector('#music-host').innerHTML = '';
+      sound.dataset.playing = 'false';
+      sound.textContent = 'вернуть музыку';
+      sound.setAttribute('aria-label', 'Включить музыку');
+    }
+
+    function showEpitaph() {
+      epitaph.textContent = epitaphs[Math.floor(Math.random() * epitaphs.length)];
+      epitaph.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => epitaph.classList.remove('show'), 2400);
+    }
+
+    controls.forEach((button) => button.addEventListener('click', () => setMode(modes.findIndex((mode) => mode.id === button.dataset.mode))));
+    sound.addEventListener('click', () => sound.dataset.playing === 'true' ? stopMusic() : startMusic());
+    shell.addEventListener('click', showEpitaph);
+    shell.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showEpitaph(); }
+    });
+    enter.addEventListener('click', () => {
+      startMusic();
+      curtain.classList.add('is-open');
+      setTimeout(() => curtain.remove(), 900);
+    });
+    startCycle();
+  </script>
+</body>
+</html>
